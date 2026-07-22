@@ -1,12 +1,83 @@
 {% extends 'base.html' %}
 {% block title %}상품 목록{% endblock %}
 {% block content %}
+<style>
+    .item-list { list-style: none; margin: 0; padding: 0; }
+    .item-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+        text-decoration: none;
+        color: inherit;
+    }
+    .item-thumb {
+        width: 64px;
+        height: 64px;
+        flex: none;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #e5e5e5;
+    }
+    .item-thumb-placeholder {
+        width: 64px;
+        height: 64px;
+        flex: none;
+        border-radius: 8px;
+        background: #e5e5e5;
+    }
+    .item-main {
+        flex: 1;
+        min-width: 0;
+    }
+    .item-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+    }
+    .item-name {
+        font-size: 1rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .item-price {
+        font-size: 1rem;
+        font-weight: 700;
+        flex: none;
+    }
+    .item-meta {
+        margin-top: 2px;
+        font-size: 0.8rem;
+        color: #999;
+    }
+</style>
+
 <h1>상품 목록</h1>
-<ul>
+<ul class="item-list">
 {% for item in items %}
     <li>
-        <a href="{% url 'items:detail' item.pk %}">{{ item.description|truncatechars:30 }}</a>
-        — {{ item.price }}원 ({{ item.get_category_display }}, {{ item.region|default:'지역 미설정' }})
+        <a class="item-row" href="{% url 'items:detail' item.pk %}">
+            {% with image=item.images.first %}
+                {% if image %}
+                    <img class="item-thumb" src="{{ image.image_url.url }}" alt="">
+                {% else %}
+                    <div class="item-thumb-placeholder"></div>
+                {% endif %}
+            {% endwith %}
+            <div class="item-main">
+                <div class="item-top">
+                    <span class="item-name">{{ item.description|truncatechars:30 }}</span>
+                    <span class="item-price">{{ item.price }}원</span>
+                </div>
+                <div class="item-meta">
+                    {{ item.get_category_display }} · {{ item.region|default:'지역 미설정' }}
+                </div>
+            </div>
+        </a>
     </li>
 {% empty %}
     <li>등록된 상품이 없습니다.</li>

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}채팅 - {{ room.item.description|truncatechars:20 }}{% endblock %}
+{% block content %}
+<h1>{{ room.item.description|truncatechars:30 }}</h1>
+<p>{{ room.buyer.nickname }} ↔ {{ room.seller.nickname }}</p>
+
+<div id="messages" style="border:1px solid #ccc; height:300px; overflow-y:auto; padding:8px;">
+{% for message in message_history %}
+    <p><strong>{{ message.sender.nickname }}</strong>: {{ message.content }}</p>
+{% endfor %}
+</div>
+
+<form id="message-form">
+    <input type="text" id="message-input" autocomplete="off">
+    <button type="submit">전송</button>
+</form>
+
+<script>
+const roomId = {{ room.pk }};
+const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const wsUrl = `${wsScheme}://${window.location.host}/ws/chat/${roomId}/`;
+
+const messagesEl = document.getElementById('messages');
+const formEl = document.getElementById('message-form');
+const inputEl = document.getElementById('message-input');
+
+let socket = null;
+let heartbeatTimer = null;
+const RECONNECT_DELAY_MS = 2000;
+
+function connect() {
+    socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+        heartbeatTimer = setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 30000);
+    };
+
+    socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'pong') return;
+
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>${data.sender_nickname}</strong>: ${data.message}`;
+        messagesEl.appendChild(p);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    };
+
+    socket.onclose = () => {
+        clearInterval(heartbeatTimer);
+        setTimeout(connect, RECONNECT_DELAY_MS);
+    };
+}
+
+connect();
+
+formEl.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!inputEl.value.trim() || !socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({ message: inputEl.value }));
+    inputEl.value = '';
+});
+</script>
+{% endblock %}

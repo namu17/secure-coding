@@ -3,21 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}중고거래{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #222;
+            background: #fafafa;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+        header .nav-left a {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #222;
+            text-decoration: none;
+        }
+        header .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        header .nav-right a,
+        header .nav-right button {
+            font-size: 0.95rem;
+            color: #444;
+            text-decoration: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        header .nav-right .nickname {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <a href="{% url 'items:list' %}">홈</a>
+        <div class="nav-left">
+            <a href="{% url 'items:list' %}">홈</a>
+        </div>
+        <div class="nav-right">
         {% if request.user.is_authenticated %}
-            <span>{{ request.user.nickname }}님</span>
+            <span class="nickname">{{ request.user.nickname }}님</span>
+            <a href="{% url 'items:create' %}">상품 등록</a>
+            <a href="{% url 'chat:room_list' %}">채팅</a>
             <form action="{% url 'accounts:logout' %}" method="post" style="display:inline">
                 {% csrf_token %}
                 <button type="submit">로그아웃</button>
             </form>
-            <a href="{% url 'items:create' %}">상품 등록</a>
         {% else %}
             <a href="{% url 'accounts:login' %}">로그인</a>
             <a href="{% url 'accounts:register' %}">회원가입</a>
         {% endif %}
+        </div>
     </header>
     <main>
         {% block content %}{% endblock %}
