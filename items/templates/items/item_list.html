@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}상품 목록{% endblock %}
+{% block content %}
+<h1>상품 목록</h1>
+<ul>
+{% for item in items %}
+    <li>
+        <a href="{% url 'items:detail' item.pk %}">{{ item.description|truncatechars:30 }}</a>
+        — {{ item.price }}원 ({{ item.get_category_display }}, {{ item.region|default:'지역 미설정' }})
+    </li>
+{% empty %}
+    <li>등록된 상품이 없습니다.</li>
+{% endfor %}
+</ul>
+{% endblock %}

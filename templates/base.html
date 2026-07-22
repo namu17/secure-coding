@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}중고거래{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <a href="{% url 'items:list' %}">홈</a>
+        {% if request.user.is_authenticated %}
+            <span>{{ request.user.nickname }}님</span>
+            <form action="{% url 'accounts:logout' %}" method="post" style="display:inline">
+                {% csrf_token %}
+                <button type="submit">로그아웃</button>
+            </form>
+            <a href="{% url 'items:create' %}">상품 등록</a>
+        {% else %}
+            <a href="{% url 'accounts:login' %}">로그인</a>
+            <a href="{% url 'accounts:register' %}">회원가입</a>
+        {% endif %}
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

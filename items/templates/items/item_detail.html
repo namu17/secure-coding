@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.description|truncatechars:30 }}{% endblock %}
+{% block content %}
+<h1>{{ item.description }}</h1>
+<p>가격: {{ item.price }}원</p>
+<p>카테고리: {{ item.get_category_display }}</p>
+<p>지역: {{ item.region|default:'지역 미설정' }}</p>
+<p>판매자: {{ item.seller.nickname }}</p>
+<p>좋아요: {{ item.like_count }}</p>
+<div>
+    {% for image in item.images.all %}
+        <img src="{{ image.image_url.url }}" alt="상품 이미지" width="200">
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}상품 등록{% endblock %}
+{% block content %}
+<h1>상품 등록</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <h2>이미지</h2>
+    {{ image_formset.management_form }}
+    {% for image_form in image_formset %}
+        {{ image_form.as_p }}
+    {% endfor %}
+    <button type="submit">등록하기</button>
+</form>
+{% endblock %}
