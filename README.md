@@ -22,4 +22,4 @@ sh nginx/generate-certs.sh
 docker compose up -d --build
 ```
 ### 4. 접속
-https://localhost 혹은 https://127.0.0.1으로 접속
+`https://localhost` 혹은 `https://127.0.0.1`으로 접속
