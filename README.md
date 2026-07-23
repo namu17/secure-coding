@@ -7,9 +7,9 @@
 cp .env.example .env
 ```
 #### 필수 수정사항
-- DJANGO_SECRET_KEY: ```python -c "import secrets;print(secrets.token_urlsafe(50))"```에서 생산된 랜덤값
-- POSTGRES_PASSWORD: ```python -c "import secrets;print(secrets.token_urlsafe(24))"```에서 생산된 랜덤값
-- JWT_SECRET: ```python -c "import secrets;print(secrets.token_urlsafe(50))"```에서 생산된 랜덤값 (위와 동일값 X)
+- DJANGO_SECRET_KEY: ```python3 -c "import secrets;print(secrets.token_urlsafe(50))"```에서 생산된 랜덤값
+- POSTGRES_PASSWORD: ```python3 -c "import secrets;print(secrets.token_urlsafe(24))"```에서 생산된 랜덤값
+- JWT_SECRET: ```python3 -c "import secrets;print(secrets.token_urlsafe(50))"```에서 생산된 랜덤값 (위와 동일값 X)
 - DJANGO_SUPERUSER_PASSWORD: 원하는 비밀번호 설정
 ### 2. nginx용 TLS 인증서 생성 (최초 1회)
 WSL 터미널에서 다음과 같은 명령어 입력
