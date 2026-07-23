@@ -197,7 +197,7 @@
             <a class="bell-link" href="{% url 'notifications:list' %}">
                 🔔{% if unread_notification_count %}<span class="bell-badge">{{ unread_notification_count }}</span>{% endif %}
             </a>
-            <span class="nickname">{{ request.user.nickname }}님</span>
+            <a class="nickname" href="{% url 'accounts:profile' %}">{{ request.user.nickname }}님</a>
             <span class="balance">{{ request.user.balance }}원</span>
             <a href="{% url 'wallet:charge' %}">충전하기</a>
             <a href="{% url 'items:create' %}">상품 등록</a>

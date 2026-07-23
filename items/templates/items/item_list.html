@@ -72,6 +72,29 @@
     .status-available { background: #e8f5e9; color: #2e7d32; }
     .status-reserved { background: #fff3e0; color: #ef6c00; }
     .status-sold { background: #eceff1; color: #546e7a; }
+    .category-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 20px;
+        padding: 0;
+        list-style: none;
+    }
+    .category-menu a {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid #ddd;
+        font-size: 0.85rem;
+        color: #444;
+        text-decoration: none;
+        background: #fff;
+    }
+    .category-menu a.active {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #fff;
+    }
 </style>
 
 {% if query %}
@@ -79,6 +102,14 @@
 {% else %}
     <h1>상품 목록</h1>
 {% endif %}
+
+<ul class="category-menu">
+    <li><a href="?q={{ query }}" class="{% if not selected_category %}active{% endif %}">전체</a></li>
+    {% for value, label in categories %}
+        <li><a href="?q={{ query }}&category={{ value }}" class="{% if selected_category == value %}active{% endif %}">{{ label }}</a></li>
+    {% endfor %}
+</ul>
+
 <ul class="item-list">
 {% for item in items %}
     <li>

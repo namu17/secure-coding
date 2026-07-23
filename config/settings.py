@@ -30,7 +30,13 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()
+]
 
 
 # Application definition
@@ -145,6 +151,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -168,7 +175,28 @@ JWT_REFRESH_TTL_DAYS = 7
 RATE_LIMIT_MAX = 100
 RATE_LIMIT_WINDOW_SECONDS = 60
 
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_ATTEMPT_WINDOW_SECONDS = 900
+LOGIN_LOCKOUT_SECONDS = 900
+
 LOGIN_URL = 'accounts:login'
+
+# Session / CSRF cookie hardening
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# TLS is terminated by the nginx reverse proxy (see nginx/nginx.conf); it
+# forwards X-Forwarded-Proto so Django knows the original request was HTTPS
+# even though the app container itself only speaks plain HTTP.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 CHANNEL_LAYERS = {
     'default': {

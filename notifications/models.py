@@ -7,6 +7,7 @@ class Notification(models.Model):
         CHAT = 'chat', '채팅'
         TRANSFER = 'transfer', '송금'
         REPORT = 'report', '신고'
+        PRICE_DROP = 'price_drop', '가격 인하'
 
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications'

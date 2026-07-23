@@ -36,6 +36,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.USER)
     created_at = models.DateTimeField(auto_now_add=True)
     suspended_until = models.DateTimeField('정지 만료 시각', null=True, blank=True)
+    pending_review = models.BooleanField('관리자 검토 대기', default=False)
     balance = models.PositiveIntegerField('보유 머니', default=0)
 
     REQUIRED_FIELDS = ['email', 'nickname']

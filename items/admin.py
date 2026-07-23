@@ -11,9 +11,11 @@ class ItemImageInline(admin.TabularInline):
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'description', 'price', 'category', 'seller', 'region', 'is_hidden', 'created_at',
+        'id', 'description', 'price', 'category', 'seller', 'region',
+        'is_hidden', 'pending_review', 'created_at',
     )
-    list_filter = ('category', 'region', 'is_hidden')
+    list_filter = ('category', 'region', 'is_hidden', 'pending_review')
+    list_editable = ('is_hidden',)
     search_fields = ('description', 'seller__username')
     inlines = [ItemImageInline]
 

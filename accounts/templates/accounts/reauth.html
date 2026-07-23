@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}본인 확인{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <h1>본인 확인</h1>
+    <p style="text-align:center; color:#888; font-size:0.85rem; margin:-10px 0 20px;">
+        내 정보를 보기 전에 비밀번호를 다시 입력해주세요.
+    </p>
+    {% if error %}<p class="auth-error">{{ error }}</p>{% endif %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">확인</button>
+    </form>
+</div>
+{% endblock %}

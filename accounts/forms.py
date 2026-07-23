@@ -30,3 +30,14 @@ class RegisterForm(UserCreationForm):
 class LoginForm(forms.Form):
     username = forms.CharField(label='아이디')
     password = forms.CharField(label='비밀번호', widget=forms.PasswordInput)
+
+
+class ReauthForm(forms.Form):
+    password = forms.CharField(label='비밀번호', widget=forms.PasswordInput)
+
+
+ProfileForm = forms.modelform_factory(
+    User,
+    fields=['nickname', 'email', 'phone_number', 'region'],
+    labels={'email': '이메일'},
+)
