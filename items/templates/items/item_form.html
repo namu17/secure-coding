@@ -38,7 +38,18 @@
             <h2>사진 (최대 3장)</h2>
             {{ image_formset.management_form }}
             {% for image_form in image_formset %}
-                <div class="image-field">{{ image_form.as_p }}</div>
+                <div class="image-field">
+                    {% if object %}
+                        {{ image_form.as_p }}
+                    {% else %}
+                        {{ image_form.id }}
+                        {% for field in image_form.visible_fields %}
+                            {% if field.name != 'DELETE' %}
+                                <p>{{ field.label_tag }} {{ field }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
             {% endfor %}
         {% endif %}
         <button type="submit">{% if object %}수정하기{% else %}등록하기{% endif %}</button>
