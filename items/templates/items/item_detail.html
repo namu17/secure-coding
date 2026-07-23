@@ -1,21 +1,273 @@
 {% extends 'base.html' %}
 {% block title %}{{ item.description|truncatechars:30 }}{% endblock %}
 {% block content %}
-<h1>{{ item.description }}</h1>
-<p>가격: {{ item.price }}원</p>
-<p>카테고리: {{ item.get_category_display }}</p>
-<p>지역: {{ item.region|default:'지역 미설정' }}</p>
-<p>판매자: {{ item.seller.nickname }}</p>
-<p>좋아요: {{ item.like_count }}</p>
-{% if request.user.is_authenticated and request.user.id != item.seller_id %}
-    <form action="{% url 'chat:start' item.pk %}" method="post">
+<style>
+    .item-gallery {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        margin-bottom: 20px;
+    }
+    .item-gallery img,
+    .item-gallery .no-image {
+        width: 100%;
+        max-width: 480px;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: 12px;
+        background: #e5e5e5;
+        flex: none;
+    }
+    .item-gallery .no-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+    .item-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 6px;
+    }
+    .item-desc {
+        font-size: 1rem;
+        line-height: 1.5;
+        white-space: pre-line;
+        margin: 0 0 16px;
+    }
+    .item-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .item-meta .like {
+        margin-left: auto;
+    }
+    .item-meta .like-button {
+        margin-left: auto;
+        width: auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
+        border: none;
+        padding: 4px 0;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #888;
+        cursor: pointer;
+    }
+    .item-meta .like-button #like-icon {
+        display: inline-block;
+        width: 1em;
+        text-align: center;
+    }
+    .item-meta .like-button.liked {
+        color: #e0245e;
+    }
+    .item-actions button[type="submit"] {
+        max-width: 220px;
+        width: 100%;
+        padding: 11px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        background: #2563eb;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .item-actions button:hover {
+        background: #1d4ed8;
+    }
+    .owner-actions {
+        display: flex;
+        gap: 12px;
+        margin: -10px 0 16px;
+    }
+    .owner-actions a {
+        font-size: 0.85rem;
+        color: #888;
+        text-decoration: none;
+    }
+    .owner-actions a:hover {
+        color: #444;
+    }
+    .report-link {
+        margin-top: 16px;
+        text-align: right;
+    }
+    .report-link a {
+        font-size: 0.8rem;
+        color: #aaa;
+        text-decoration: none;
+    }
+    .report-link a:hover {
+        color: #c0392b;
+    }
+    .hidden-notice {
+        background: #fdecea;
+        color: #c0392b;
+        font-size: 0.85rem;
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+    .item-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .item-name-heading {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .status-badge {
+        display: inline-block;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .status-available { background: #e8f5e9; color: #2e7d32; }
+    .status-reserved { background: #fff3e0; color: #ef6c00; }
+    .status-sold { background: #eceff1; color: #546e7a; }
+    .status-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: -10px 0 16px;
+    }
+    .status-form label {
+        font-size: 0.8rem;
+        color: #888;
+        margin: 0;
+    }
+    .status-form select {
+        width: auto;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+    .status-form button[type="submit"] {
+        width: auto;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #fff;
+        background: #2563eb;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+</style>
+
+{% if item.is_hidden %}
+    <p class="hidden-notice">신고 누적으로 비공개 처리된 게시물입니다. 다른 사용자에게는 노출되지 않습니다.</p>
+{% endif %}
+
+<div class="item-title-row">
+    <h1 class="item-name-heading">{{ item.description|truncatechars:40 }}</h1>
+    <span class="status-badge status-{{ item.status }}">{{ item.get_status_display }}</span>
+</div>
+
+{% if request.user.id == item.seller_id %}
+    <form class="status-form" method="post" action="{% url 'items:status' item.pk %}">
         {% csrf_token %}
-        <button type="submit">채팅하기</button>
+        <label for="status-select">거래 상태 변경</label>
+        <select id="status-select" name="status">
+        {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if item.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+        </select>
+        <button type="submit">변경</button>
     </form>
 {% endif %}
-<div>
-    {% for image in item.images.all %}
-        <img src="{{ image.image_url.url }}" alt="상품 이미지" width="200">
-    {% endfor %}
+
+<div class="item-gallery">
+{% for image in item.images.all %}
+    <img src="{{ image.image_url.url }}" alt="상품 이미지">
+{% empty %}
+    <div class="no-image">등록된 사진이 없습니다</div>
+{% endfor %}
 </div>
+
+{% if request.user.id == item.seller_id %}
+    <div class="owner-actions">
+        <a href="{% url 'items:update' item.pk %}">수정</a>
+        <a href="{% url 'items:delete' item.pk %}">삭제</a>
+    </div>
+{% endif %}
+
+<p class="item-price">{{ item.price }}원</p>
+<p class="item-desc">{{ item.description }}</p>
+
+<div class="item-meta">
+    <span>{{ item.get_category_display }}</span>
+    <span>· {{ item.region|default:'지역 미설정' }}</span>
+    <span>· {{ item.seller.nickname }}</span>
+    {% if request.user.is_authenticated %}
+        <button
+            type="button"
+            id="like-button"
+            class="like-button{% if is_liked %} liked{% endif %}"
+            data-url="{% url 'items:like' item.pk %}"
+            data-liked="{{ is_liked|yesno:'true,false' }}"
+        >
+            <span id="like-icon">♥</span>
+            <span id="like-count">{{ item.like_count }}</span>
+        </button>
+    {% else %}
+        <span class="like">♥ {{ item.like_count }}</span>
+    {% endif %}
+</div>
+
+{% if request.user.is_authenticated and request.user.id != item.seller_id %}
+    <div class="item-actions">
+        <form action="{% url 'chat:start' item.pk %}" method="post">
+            {% csrf_token %}
+            <button type="submit">채팅하기</button>
+        </form>
+    </div>
+    <div class="report-link">
+        <a href="{% url 'items:report' item.pk %}">신고</a>
+    </div>
+{% endif %}
+
+<script>
+function getCookie(name) {
+    const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return match ? match.pop() : '';
+}
+
+const likeButton = document.getElementById('like-button');
+if (likeButton) {
+    likeButton.addEventListener('click', async () => {
+        likeButton.disabled = true;
+        try {
+            const response = await fetch(likeButton.dataset.url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            });
+            if (!response.ok) return;
+            const data = await response.json();
+            document.getElementById('like-count').textContent = data.like_count;
+            likeButton.classList.toggle('liked', data.liked);
+            likeButton.dataset.liked = data.liked;
+        } finally {
+            likeButton.disabled = false;
+        }
+    });
+}
+</script>
 {% endblock %}

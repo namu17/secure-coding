@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}충전하기{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <h1>충전하기</h1>
+    <p style="text-align:center; color:#888; font-size:0.85rem; margin:-16px 0 20px;">
+        현재 보유 머니: {{ request.user.balance }}원
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <p>
+            <label for="amount">충전할 금액</label>
+            <input type="number" id="amount" name="amount" min="1" step="1" placeholder="10000" required>
+        </p>
+        <button type="submit">충전하기</button>
+    </form>
+    <p class="auth-footer">* 테스트용 mock 충전입니다. 실제 결제는 이루어지지 않습니다.</p>
+</div>
+{% endblock %}

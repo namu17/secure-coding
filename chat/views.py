@@ -27,9 +27,12 @@ class ChatRoomListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
-        return ChatRoom.objects.filter(Q(buyer=user) | Q(seller=user)).select_related(
+        rooms = ChatRoom.objects.filter(Q(buyer=user) | Q(seller=user)).select_related(
             'item', 'buyer', 'seller'
         )
+        for room in rooms:
+            room.partner = room.seller if room.buyer_id == user.id else room.buyer
+        return rooms
 
 
 class ChatRoomDetailView(LoginRequiredMixin, DetailView):
@@ -39,9 +42,15 @@ class ChatRoomDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         user = self.request.user
-        return ChatRoom.objects.filter(Q(buyer=user) | Q(seller=user))
+        return ChatRoom.objects.select_related('item', 'buyer', 'seller').filter(
+            Q(buyer=user) | Q(seller=user)
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['message_history'] = self.object.messages.select_related('sender')
+        user = self.request.user
+        context['recipient'] = (
+            self.object.seller if self.object.buyer_id == user.id else self.object.buyer
+        )
         return context

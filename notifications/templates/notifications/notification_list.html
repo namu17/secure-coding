@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}알림{% endblock %}
+{% block content %}
+<style>
+    .noti-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .noti-header button[type="submit"] {
+        width: auto;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #444;
+        background: #f1f1f1;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+    }
+    .noti-list { list-style: none; margin: 0; padding: 0; }
+    .noti-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 4px;
+        border-bottom: 1px solid #eee;
+        text-decoration: none;
+        color: inherit;
+    }
+    .noti-row.unread { background: #f0f6ff; }
+    .noti-icon {
+        flex: none;
+        font-size: 1.2rem;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid #eee;
+    }
+    .noti-main { flex: 1; min-width: 0; }
+    .noti-message {
+        font-size: 0.9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .noti-row.unread .noti-message { font-weight: 700; }
+    .noti-time {
+        margin-top: 2px;
+        font-size: 0.75rem;
+        color: #999;
+    }
+    .noti-dot {
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #2563eb;
+        margin-top: 8px;
+    }
+</style>
+
+<div class="noti-header">
+    <h1>알림</h1>
+    {% if notifications %}
+    <form method="post" action="{% url 'notifications:mark_all_read' %}">
+        {% csrf_token %}
+        <button type="submit">모두 읽음</button>
+    </form>
+    {% endif %}
+</div>
+
+<ul class="noti-list">
+{% for n in notifications %}
+    <li>
+        <a class="noti-row{% if not n.is_read %} unread{% endif %}" href="{% url 'notifications:open' n.pk %}">
+            <div class="noti-icon">
+                {% if n.type == 'chat' %}💬{% elif n.type == 'transfer' %}💰{% else %}🚨{% endif %}
+            </div>
+            <div class="noti-main">
+                <div class="noti-message">{{ n.message }}</div>
+                <div class="noti-time">{{ n.created_at|timesince }} 전</div>
+            </div>
+            {% if not n.is_read %}<div class="noti-dot"></div>{% endif %}
+        </a>
+    </li>
+{% empty %}
+    <li>알림이 없습니다.</li>
+{% endfor %}
+</ul>
+{% endblock %}

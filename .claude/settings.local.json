@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wsl -e bash -lc \"curl -s -c /tmp/transfer_cj2.txt -b /tmp/transfer_cj.txt http://127.0.0.1:8000/chats/3/ -H \\\\\"Cookie: access_token=\\\\$\\(cat /tmp/none 2>/dev/null\\)\\\\\" -o /tmp/after_fail.html; true\")"
+    ]
+  }
+}

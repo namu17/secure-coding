@@ -5,6 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.db.models import Q
 
 from chat.models import ChatRoom, Message
+from notifications.services import notify
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -58,5 +59,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _save_message(self, user, content):
-        room = ChatRoom.objects.get(pk=self.room_id)
-        return Message.objects.create(room=room, sender=user, content=content)
+        room = ChatRoom.objects.select_related('buyer', 'seller').get(pk=self.room_id)
+        message = Message.objects.create(room=room, sender=user, content=content)
+        partner = room.seller if room.buyer_id == user.id else room.buyer
+        notify(
+            partner,
+            'chat',
+            f'{user.nickname}: {content[:30]}',
+            f'/chats/{room.id}/',
+        )
+        return message

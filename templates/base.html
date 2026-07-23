@@ -31,8 +31,10 @@
             gap: 14px;
         }
         header .nav-right a,
-        header .nav-right button {
+        header .nav-right button[type="submit"] {
+            width: auto;
             font-size: 0.95rem;
+            font-weight: 400;
             color: #444;
             text-decoration: none;
             background: none;
@@ -44,10 +46,136 @@
             color: #888;
             font-size: 0.9rem;
         }
+        header .nav-right .balance {
+            color: #2563eb;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .bell-link {
+            position: relative;
+            font-size: 1.15rem !important;
+            line-height: 1;
+        }
+        .bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            background: #dc2626;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+        }
+        .search-form {
+            flex: 1;
+            max-width: 420px;
+            margin: 0 20px;
+        }
+        .search-form input[type="search"] {
+            width: 100%;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            border: 1px solid #ddd;
+            border-radius: 999px;
+            background: #f5f5f5;
+            font-family: inherit;
+        }
+        .search-form input[type="search"]:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: #fff;
+        }
         main {
             max-width: 720px;
             margin: 0 auto;
             padding: 24px;
+        }
+
+        .auth-card {
+            max-width: 360px;
+            margin: 40px auto 0;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 32px 28px;
+        }
+        .auth-card h1 {
+            font-size: 1.3rem;
+            margin: 0 0 24px;
+            text-align: center;
+        }
+        .auth-error {
+            background: #fdecea;
+            color: #c0392b;
+            font-size: 0.85rem;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin: 0 0 16px;
+        }
+        .auth-footer {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .auth-footer a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        form p { margin: 0 0 16px; }
+        form label {
+            display: block;
+            font-size: 0.82rem;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        form input[type="text"],
+        form input[type="password"],
+        form input[type="email"],
+        form input[type="number"],
+        form select,
+        form textarea {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            font-family: inherit;
+        }
+        form input:focus,
+        form select:focus,
+        form textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        form ul.errorlist {
+            list-style: none;
+            margin: 4px 0 0;
+            padding: 0;
+            color: #c0392b;
+            font-size: 0.8rem;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 11px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            background: #2563eb;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background: #1d4ed8;
         }
     </style>
 </head>
@@ -56,9 +184,22 @@
         <div class="nav-left">
             <a href="{% url 'items:list' %}">홈</a>
         </div>
+        <form class="search-form" action="{% url 'items:list' %}" method="get">
+            <input
+                type="search"
+                name="q"
+                placeholder="상품 검색"
+                value="{{ request.GET.q|default:'' }}"
+            >
+        </form>
         <div class="nav-right">
         {% if request.user.is_authenticated %}
+            <a class="bell-link" href="{% url 'notifications:list' %}">
+                🔔{% if unread_notification_count %}<span class="bell-badge">{{ unread_notification_count }}</span>{% endif %}
+            </a>
             <span class="nickname">{{ request.user.nickname }}님</span>
+            <span class="balance">{{ request.user.balance }}원</span>
+            <a href="{% url 'wallet:charge' %}">충전하기</a>
             <a href="{% url 'items:create' %}">상품 등록</a>
             <a href="{% url 'chat:room_list' %}">채팅</a>
             <form action="{% url 'accounts:logout' %}" method="post" style="display:inline">
@@ -74,5 +215,12 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+    {% if messages %}
+        <script>
+        {% for message in messages %}
+            alert("{{ message|escapejs }}");
+        {% endfor %}
+        </script>
+    {% endif %}
 </body>
 </html>

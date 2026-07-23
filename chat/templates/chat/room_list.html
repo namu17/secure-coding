@@ -1,13 +1,57 @@
 {% extends 'base.html' %}
 {% block title %}내 채팅{% endblock %}
 {% block content %}
+<style>
+    .room-list { list-style: none; margin: 0; padding: 0; }
+    .room-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 4px;
+        border-bottom: 1px solid #eee;
+        text-decoration: none;
+        color: inherit;
+    }
+    .room-avatar {
+        width: 44px;
+        height: 44px;
+        flex: none;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+    .room-main {
+        flex: 1;
+        min-width: 0;
+    }
+    .room-partner {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+    .room-item {
+        margin-top: 2px;
+        font-size: 0.8rem;
+        color: #999;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+
 <h1>내 채팅</h1>
-<ul>
+<ul class="room-list">
 {% for room in rooms %}
     <li>
-        <a href="{% url 'chat:room_detail' room.pk %}">
-            {{ room.item.description|truncatechars:20 }}
-            ({{ room.buyer.nickname }} ↔ {{ room.seller.nickname }})
+        <a class="room-row" href="{% url 'chat:room_detail' room.pk %}">
+            <div class="room-avatar">{{ room.partner.nickname|slice:":1" }}</div>
+            <div class="room-main">
+                <div class="room-partner">{{ room.partner.nickname }}</div>
+                <div class="room-item">{{ room.item.description|truncatechars:30 }}</div>
+            </div>
         </a>
     </li>
 {% empty %}

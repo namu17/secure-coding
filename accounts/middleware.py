@@ -21,7 +21,8 @@ class JWTAuthenticationMiddleware:
                 try:
                     payload = decode_token(token)
                     if payload.get('type') == 'access':
-                        request.user = User.objects.get(pk=payload['user_id'])
+                        user = User.objects.get(pk=payload['user_id'])
+                        request.user = AnonymousUser() if user.is_suspended else user
                 except (jwt.InvalidTokenError, User.DoesNotExist):
                     request.user = AnonymousUser()
         return self.get_response(request)

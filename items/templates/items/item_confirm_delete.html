@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}상품 삭제{% endblock %}
+{% block content %}
+<style>
+    .delete-card {
+        max-width: 420px;
+        margin: 20px auto 0;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 32px 28px;
+        text-align: center;
+    }
+    .delete-card h1 {
+        font-size: 1.15rem;
+        margin: 0 0 12px;
+    }
+    .delete-card p {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0 0 24px;
+    }
+    .delete-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .delete-actions a,
+    .delete-actions button {
+        flex: 1;
+        width: auto;
+        padding: 11px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+    }
+    .delete-actions .cancel {
+        background: #f1f1f1;
+        color: #333;
+    }
+    .delete-actions .confirm {
+        background: #dc2626;
+        color: #fff;
+    }
+</style>
+
+<div class="delete-card">
+    <h1>정말 삭제하시겠어요?</h1>
+    <p>"{{ item.description|truncatechars:30 }}" 상품이 영구적으로 삭제됩니다.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="delete-actions">
+            <a class="cancel" href="{% url 'items:detail' item.pk %}">취소</a>
+            <button class="confirm" type="submit">삭제하기</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

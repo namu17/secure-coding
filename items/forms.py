@@ -8,5 +8,5 @@ ItemForm = forms.modelform_factory(
 )
 
 ItemImageFormSet = inlineformset_factory(
-    Item, ItemImage, fields=['image_url'], extra=3, can_delete=False
+    Item, ItemImage, fields=['image_url'], extra=3, can_delete=True
 )

@@ -1,6 +1,10 @@
+import math
+
 import jwt
 from django.contrib.auth import authenticate
+from django.contrib.auth import logout as session_logout
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views import View
 
 from accounts.forms import LoginForm, RegisterForm
@@ -16,6 +20,11 @@ from accounts.jwt_utils import (
     set_auth_cookies,
 )
 from accounts.models import User
+
+
+def suspension_message(user):
+    remaining_days = math.ceil((user.suspended_until - timezone.now()).total_seconds() / 86400)
+    return f'신고 누적으로 계정이 정지되었습니다. (남은 기간: {remaining_days}일)'
 
 
 class RegisterView(View):
@@ -43,18 +52,23 @@ class LoginView(View):
                 username=form.cleaned_data['username'],
                 password=form.cleaned_data['password'],
             )
-            if user is not None:
+            if user is not None and user.is_suspended:
+                error = suspension_message(user)
+            elif user is not None:
                 access_token, refresh_token = issue_tokens(user)
                 response = redirect('items:list')
                 set_auth_cookies(response, access_token, refresh_token)
                 return response
-            error = '아이디 또는 비밀번호가 올바르지 않습니다.'
+            else:
+                error = '아이디 또는 비밀번호가 올바르지 않습니다.'
         return render(request, 'accounts/login.html', {'form': form, 'error': error})
 
 
 class LogoutView(View):
     def post(self, request):
         response = redirect('accounts:login')
+        if request.user.is_authenticated:
+            session_logout(request)
         access_token = request.COOKIES.get(ACCESS_COOKIE)
         if access_token:
             try:
@@ -93,6 +107,10 @@ class TokenRefreshView(View):
         try:
             user = User.objects.get(pk=payload['user_id'])
         except User.DoesNotExist:
+            return redirect('accounts:login')
+
+        if user.is_suspended:
+            revoke_refresh_token(payload['jti'])
             return redirect('accounts:login')
 
         revoke_refresh_token(payload['jti'])

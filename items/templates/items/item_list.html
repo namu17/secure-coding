@@ -37,6 +37,12 @@
         align-items: baseline;
         gap: 8px;
     }
+    .item-name-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
     .item-name {
         font-size: 1rem;
         font-weight: 600;
@@ -54,9 +60,25 @@
         font-size: 0.8rem;
         color: #999;
     }
+    .status-badge {
+        flex: none;
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .status-available { background: #e8f5e9; color: #2e7d32; }
+    .status-reserved { background: #fff3e0; color: #ef6c00; }
+    .status-sold { background: #eceff1; color: #546e7a; }
 </style>
 
-<h1>상품 목록</h1>
+{% if query %}
+    <h1>"{{ query }}" 검색 결과</h1>
+{% else %}
+    <h1>상품 목록</h1>
+{% endif %}
 <ul class="item-list">
 {% for item in items %}
     <li>
@@ -70,7 +92,10 @@
             {% endwith %}
             <div class="item-main">
                 <div class="item-top">
-                    <span class="item-name">{{ item.description|truncatechars:30 }}</span>
+                    <span class="item-name-wrap">
+                        <span class="item-name">{{ item.description|truncatechars:30 }}</span>
+                        <span class="status-badge status-{{ item.status }}">{{ item.get_status_display }}</span>
+                    </span>
                     <span class="item-price">{{ item.price }}원</span>
                 </div>
                 <div class="item-meta">
@@ -80,7 +105,11 @@
         </a>
     </li>
 {% empty %}
-    <li>등록된 상품이 없습니다.</li>
+    {% if query %}
+        <li>"{{ query }}"에 대한 검색 결과가 없습니다.</li>
+    {% else %}
+        <li>등록된 상품이 없습니다.</li>
+    {% endif %}
 {% endfor %}
 </ul>
 {% endblock %}

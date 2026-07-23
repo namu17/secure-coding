@@ -1,22 +1,250 @@
 {% extends 'base.html' %}
 {% block title %}채팅 - {{ room.item.description|truncatechars:20 }}{% endblock %}
 {% block content %}
-<h1>{{ room.item.description|truncatechars:30 }}</h1>
-<p>{{ room.buyer.nickname }} ↔ {{ room.seller.nickname }}</p>
+<style>
+    .chat-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid #eee;
+    }
+    .chat-avatar {
+        width: 40px;
+        height: 40px;
+        flex: none;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    .chat-header-info {
+        min-width: 0;
+    }
+    .chat-header-info .partner {
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+    .chat-header-info .item-title {
+        font-size: 0.8rem;
+        color: #888;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
-<div id="messages" style="border:1px solid #ccc; height:300px; overflow-y:auto; padding:8px;">
-{% for message in message_history %}
-    <p><strong>{{ message.sender.nickname }}</strong>: {{ message.content }}</p>
-{% endfor %}
+    #messages {
+        height: 420px;
+        overflow-y: auto;
+        padding: 16px;
+        background: #f7f8fa;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .msg-row {
+        display: flex;
+        flex-direction: column;
+        max-width: 72%;
+    }
+    .msg-row.mine {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+    .msg-row.theirs {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+    .msg-sender {
+        font-size: 0.72rem;
+        color: #999;
+        margin-bottom: 3px;
+        padding: 0 4px;
+    }
+    .msg-bubble {
+        padding: 9px 13px;
+        border-radius: 16px;
+        font-size: 0.92rem;
+        line-height: 1.4;
+        word-break: break-word;
+    }
+    .msg-row.mine .msg-bubble {
+        background: #2563eb;
+        color: #fff;
+        border-bottom-right-radius: 4px;
+    }
+    .msg-row.theirs .msg-bubble {
+        background: #fff;
+        color: #222;
+        border: 1px solid #eee;
+        border-bottom-left-radius: 4px;
+    }
+    .msg-row.system {
+        align-self: center;
+        max-width: 90%;
+    }
+    .msg-row.system .msg-bubble {
+        background: #e8f5e9;
+        color: #2e7d32;
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 6px 14px;
+        border-radius: 999px;
+    }
+
+    .chat-input-row {
+        display: flex;
+        gap: 8px;
+        padding: 14px 16px;
+        border-top: 1px solid #eee;
+        background: #fff;
+    }
+    .chat-input-row input[type="text"] {
+        flex: 1;
+        border-radius: 999px;
+        background: #f5f5f5;
+    }
+    .chat-input-row button {
+        width: auto;
+        white-space: nowrap;
+        border-radius: 999px;
+        padding: 0 18px;
+    }
+    #transfer-btn {
+        background: #f1f1f1;
+        color: #333;
+        border: none;
+        cursor: pointer;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
+    .modal-overlay.open {
+        display: flex;
+    }
+    .modal-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 28px;
+        width: 100%;
+        max-width: 320px;
+    }
+    .modal-card h2 {
+        font-size: 1.1rem;
+        margin: 0 0 20px;
+    }
+    .modal-card .recipient {
+        margin-top: 16px;
+        font-size: 0.85rem;
+        color: #888;
+    }
+    .modal-card .recipient strong {
+        color: #333;
+    }
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .modal-actions button,
+    .modal-actions a {
+        flex: 1;
+        width: auto;
+        padding: 11px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+    }
+    .modal-actions .cancel {
+        background: #f1f1f1;
+        color: #333;
+    }
+    .modal-actions .confirm {
+        background: #2563eb;
+        color: #fff;
+    }
+</style>
+
+<div class="chat-card">
+    <div class="chat-header">
+        <div class="chat-avatar">{{ recipient.nickname|slice:":1" }}</div>
+        <div class="chat-header-info">
+            <div class="partner">{{ recipient.nickname }}</div>
+            <div class="item-title">{{ room.item.description|truncatechars:30 }} · {{ room.item.price }}원</div>
+        </div>
+    </div>
+
+    <div id="messages">
+    {% for message in message_history %}
+        {% if '송금 완료:' in message.content %}
+            <div class="msg-row system">
+                <div class="msg-bubble">{{ message.content }}</div>
+            </div>
+        {% else %}
+            <div class="msg-row {% if message.sender_id == request.user.id %}mine{% else %}theirs{% endif %}">
+                {% if message.sender_id != request.user.id %}
+                    <div class="msg-sender">{{ message.sender.nickname }}</div>
+                {% endif %}
+                <div class="msg-bubble">{{ message.content }}</div>
+            </div>
+        {% endif %}
+    {% endfor %}
+    </div>
+
+    <form id="message-form" class="chat-input-row">
+        <input type="text" id="message-input" autocomplete="off" placeholder="메시지를 입력하세요">
+        <button type="button" id="transfer-btn">송금</button>
+        <button type="submit">전송</button>
+    </form>
 </div>
 
-<form id="message-form">
-    <input type="text" id="message-input" autocomplete="off">
-    <button type="submit">전송</button>
-</form>
+<div class="modal-overlay" id="transfer-modal">
+    <div class="modal-card">
+        <h2>송금하기</h2>
+        <form method="post" action="{% url 'wallet:transfer' room.pk %}">
+            {% csrf_token %}
+            <p>
+                <label for="transfer-amount">보낼 금액</label>
+                <input
+                    type="number" id="transfer-amount" name="amount"
+                    min="1" step="1" value="{{ room.item.price }}" required
+                >
+            </p>
+            <p class="recipient">받는 사람: <strong>{{ recipient.nickname }}</strong></p>
+            <div class="modal-actions">
+                <button type="button" class="cancel" id="transfer-cancel">취소</button>
+                <button type="submit" class="confirm">송금하기</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 const roomId = {{ room.pk }};
+const currentUserId = {{ request.user.id }};
 const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 const wsUrl = `${wsScheme}://${window.location.host}/ws/chat/${roomId}/`;
 
@@ -27,6 +255,26 @@ const inputEl = document.getElementById('message-input');
 let socket = null;
 let heartbeatTimer = null;
 const RECONNECT_DELAY_MS = 2000;
+
+function appendMessage(data) {
+    const row = document.createElement('div');
+
+    if (data.message.startsWith('송금 완료:')) {
+        row.className = 'msg-row system';
+        row.innerHTML = `<div class="msg-bubble"></div>`;
+        row.querySelector('.msg-bubble').textContent = data.message;
+    } else {
+        const isMine = data.sender_id === currentUserId;
+        row.className = `msg-row ${isMine ? 'mine' : 'theirs'}`;
+        const senderHtml = isMine ? '' : `<div class="msg-sender"></div>`;
+        row.innerHTML = `${senderHtml}<div class="msg-bubble"></div>`;
+        if (!isMine) row.querySelector('.msg-sender').textContent = data.sender_nickname;
+        row.querySelector('.msg-bubble').textContent = data.message;
+    }
+
+    messagesEl.appendChild(row);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
 
 function connect() {
     socket = new WebSocket(wsUrl);
@@ -42,11 +290,7 @@ function connect() {
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.type === 'pong') return;
-
-        const p = document.createElement('p');
-        p.innerHTML = `<strong>${data.sender_nickname}</strong>: ${data.message}`;
-        messagesEl.appendChild(p);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
+        appendMessage(data);
     };
 
     socket.onclose = () => {
@@ -56,12 +300,24 @@ function connect() {
 }
 
 connect();
+messagesEl.scrollTop = messagesEl.scrollHeight;
 
 formEl.addEventListener('submit', (event) => {
     event.preventDefault();
     if (!inputEl.value.trim() || !socket || socket.readyState !== WebSocket.OPEN) return;
     socket.send(JSON.stringify({ message: inputEl.value }));
     inputEl.value = '';
+});
+
+const transferModal = document.getElementById('transfer-modal');
+document.getElementById('transfer-btn').addEventListener('click', () => {
+    transferModal.classList.add('open');
+});
+document.getElementById('transfer-cancel').addEventListener('click', () => {
+    transferModal.classList.remove('open');
+});
+transferModal.addEventListener('click', (event) => {
+    if (event.target === transferModal) transferModal.classList.remove('open');
 });
 </script>
 {% endblock %}

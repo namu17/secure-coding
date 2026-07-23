@@ -1,15 +1,47 @@
 {% extends 'base.html' %}
-{% block title %}상품 등록{% endblock %}
+{% block title %}{% if object %}상품 수정{% else %}상품 등록{% endif %}{% endblock %}
 {% block content %}
-<h1>상품 등록</h1>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <h2>이미지</h2>
-    {{ image_formset.management_form }}
-    {% for image_form in image_formset %}
-        {{ image_form.as_p }}
-    {% endfor %}
-    <button type="submit">등록하기</button>
-</form>
+<style>
+    .item-form-card {
+        max-width: 480px;
+        margin: 20px auto 0;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 32px 28px;
+    }
+    .item-form-card h1 {
+        font-size: 1.3rem;
+        margin: 0 0 24px;
+    }
+    .item-form-card h2 {
+        font-size: 0.95rem;
+        color: #666;
+        margin: 24px 0 12px;
+        padding-top: 16px;
+        border-top: 1px solid #eee;
+    }
+    .item-form-card .image-field { margin-bottom: 12px; }
+    .item-form-card input[type="file"] {
+        width: 100%;
+        padding: 8px 0;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="item-form-card">
+    <h1>{% if object %}상품 수정{% else %}상품 등록{% endif %}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if image_formset %}
+            <h2>사진 (최대 3장)</h2>
+            {{ image_formset.management_form }}
+            {% for image_form in image_formset %}
+                <div class="image-field">{{ image_form.as_p }}</div>
+            {% endfor %}
+        {% endif %}
+        <button type="submit">{% if object %}수정하기{% else %}등록하기{% endif %}</button>
+    </form>
+</div>
 {% endblock %}
