@@ -1,10 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import ASCIIUsernameValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from regions.models import Region
+
+phone_number_validator = RegexValidator(
+    regex=r'^01[0-9]-\d{3,4}-\d{4}$',
+    message="전화번호 형식이 올바르지 않습니다. 예: 010-1234-5678",
+)
 
 
 class User(AbstractUser):
@@ -23,7 +29,13 @@ class User(AbstractUser):
         validators=[ASCIIUsernameValidator()],
         error_messages={'unique': '이미 사용 중인 아이디입니다.'},
     )
-    phone_number = models.CharField('전화번호', max_length=20, blank=True)
+    phone_number = models.CharField(
+        '전화번호',
+        max_length=20,
+        blank=True,
+        validators=[phone_number_validator],
+        help_text='- 010-1234-5678 형식으로 입력해주세요.',
+    )
     nickname = models.CharField('닉네임', max_length=50, unique=True)
     region = models.ForeignKey(
         Region,

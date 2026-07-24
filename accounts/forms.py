@@ -13,6 +13,12 @@ class RegisterForm(UserCreationForm):
             'username': '아이디',
             'email': '이메일',
         }
+        widgets = {
+            'phone_number': forms.TextInput(attrs={
+                'pattern': r'01[0-9]-\d{3,4}-\d{4}',
+                'placeholder': '010-1234-5678',
+            }),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,4 +46,10 @@ ProfileForm = forms.modelform_factory(
     User,
     fields=['nickname', 'email', 'phone_number', 'region'],
     labels={'email': '이메일'},
+    widgets={
+        'phone_number': forms.TextInput(attrs={
+            'pattern': r'01[0-9]-\d{3,4}-\d{4}',
+            'placeholder': '010-1234-5678',
+        }),
+    },
 )
