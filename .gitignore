@@ -7,4 +7,3 @@ media/
 *.log
 static/
 nginx/certs/*.pem
-.claude/
