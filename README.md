@@ -11,6 +11,7 @@ sudo apt install openssl
 python3(랜덤값 생성)과 openssl(인증서)를 WSL(Ubuntu) 환경에 설치합니다.
 ### 1. 환경 변수 파일 준비 (.env)
 ```
+cd secure-coding #secure-coding 디렉토리 이동
 cp .env.example .env
 ```
 #### 필수 수정사항
@@ -21,7 +22,6 @@ cp .env.example .env
 ### 2. nginx용 TLS 인증서 생성 (최초 1회)
 WSL 터미널에서 다음과 같은 명령어 입력
 ```
-cd ~/secure-coding #secure-coding 디렉토리 이동
 sh nginx/generate-certs.sh
 ```
 ### 3. 빌드 + 가동
