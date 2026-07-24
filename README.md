@@ -2,6 +2,13 @@
 
 ## 실행 방법
 > WSL(Ubuntu) 환경
+### 0. 사전 준비
+```
+sudo apt update
+sudo apt install python3
+sudo apt install openssl
+```
+python3(랜덤값 생성)과 openssl(인증서)를 WSL(Ubuntu) 환경에 설치합니다.
 ### 1. 환경 변수 파일 준비 (.env)
 ```
 cp .env.example .env
